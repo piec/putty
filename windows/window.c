@@ -3900,7 +3900,7 @@ static int TranslateKey(UINT message, WPARAM wParam, LPARAM lParam,
     if (key_down && (keystate[VK_RMENU] & 0x80) == 0 && !compose_state) {
 	/* Okay, prepare for most alts then ... */
 	if (left_alt)
-	    *p++ = '\033';
+	    *p++ = '\x1B';
 
 	/* Lets see if it's a pattern we know all about ... */
 	if (wParam == VK_PRIOR && shift_state == 1) {
@@ -4326,7 +4326,18 @@ static int TranslateKey(UINT message, WPARAM wParam, LPARAM lParam,
 		break;
 	    }
 	    if (xkey) {
-		p += format_arrow_key(p, term, xkey, shift_state);
+		    int mod_keys = ((keystate[VK_SHIFT] & 0x80) != 0)
+			+ ((keystate[VK_LMENU] & 0x80) != 0) * 2
+			+ ((keystate[VK_CONTROL] & 0x80) != 0) * 4
+			;
+
+			{
+				/* hack: revert output already done
+				 * needed because the code above "*p++ = '\x1B';" adds an escape code
+				 */
+				p = output; 
+			}
+			p += format_arrow_key(p, term, xkey, mod_keys);
 		return p - output;
 	    }
 	}

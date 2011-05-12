@@ -5874,7 +5874,12 @@ void term_mouse(Terminal *term, Mouse_Button braw, Mouse_Button bcooked,
     term_update(term);
 }
 
-int format_arrow_key(char *buf, Terminal *term, int xkey, int ctrl)
+/* mod_keys:
+ *   bit 0: shift
+ *   bit 1: left alt
+ *   bit 2: ctrl
+ */
+int format_arrow_key(char *buf, Terminal *term, int xkey, int mod_keys)
 {
     char *p = buf;
 
@@ -5897,19 +5902,40 @@ int format_arrow_key(char *buf, Terminal *term, int xkey, int ctrl)
 	if (!term->app_keypad_keys)
 	    app_flg = 0;
 #endif
+#if 0
 	/* Useful mapping of Ctrl-arrows */
 	if (ctrl)
 	    app_flg = !app_flg;
+#endif
+
+	int mod_keys_to_code[] = {
+		/*    C A S */
+		0, /* 0 0 0 */
+		2, /* 0 0 1 */
+		3, /* 0 1 0 */
+		4, /* 0 1 1 */
+		5, /* 1 0 0 */
+		6, /* 1 0 1 */
+		7, /* 1 1 0 */
+		8, /* 1 1 1 */
+	};
 
 	if (app_flg)
 	    p += sprintf((char *) p, "\x1BO%c", xkey);
 	else
-	    p += sprintf((char *) p, "\x1B[%c", xkey);
+	{
+		int code = mod_keys_to_code[mod_keys & 7];
+		if(code == 0)
+			p += sprintf((char *) p, "\x1B[%c", xkey);
+		else
+			p += sprintf((char *) p, "\x1B[1;%d%c", code, xkey);
+	}
     }
 
     return p - buf;
 }
 
+#if 0 /* is this function used anywhere ? */
 void term_key(Terminal *term, Key_Sym keysym, wchar_t *text, size_t tlen,
 	      unsigned int modifiers, unsigned int flags)
 {
@@ -6336,6 +6362,7 @@ void term_key(Terminal *term, Key_Sym keysym, wchar_t *text, size_t tlen,
 	}
     }
 }
+#endif
 
 void term_nopaste(Terminal *term)
 {
