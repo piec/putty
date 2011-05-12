@@ -176,6 +176,9 @@ version.o: FORCE
 CFLAGS = $(CFLAGS) /DHAS_GSSAPI /DSECURITY_WIN32
 RCFLAGS = $(RCFLAGS) $(VER)
 !end
+!begin vc vars-dsp
+/D "HAS_GSSAPI" /D "SECURITY_WIN32"
+!end
 !begin cygwin vars
 # XXX GNU-ism, but it's probably all right for a Cygwin/MinGW Makefile.
 RCFLAGS += $(patsubst -D%,--define %,$(VER))
